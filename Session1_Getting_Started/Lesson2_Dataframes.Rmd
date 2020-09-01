@@ -1,0 +1,194 @@
+---
+title: "Getting started with R"
+subtitle: "Lesson 2: Dataframe basics in R"
+date: "September 2020"
+output: 
+  html_document:
+    theme: flatly
+    highlight: haddock 
+    df_print: kable
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+    keep_md: true
+---
+
+## Goals of this lesson: 
+- Loading data in R 
+- Inspecting data 
+- How to index dataframes
+- Working with missing values
+
+
+```{r, message = F, warning = F}
+
+library(readxl)
+library(tidyverse)
+library(lubridate)
+```
+
+## 1. Loading data in R 
+
+### Opening data 
+
+You can open many different file types in R, as long as you use the right function to open the file. For example, **read_excel()** can be used to open excel files. 
+
+We will open a csv file with **read_csv()**.
+
+- Save the demo_data.csv into the "data" folder in your R project.
+
+- The file path is relative to where this script is saved, so we need to go back up one level to the home folder, then into  the data folder: **"../data/demo_data.csv"**
+
+- Then, we assign the file contents as **demo_data**. Now you have a dataframe object saved in the R environment.
+
+```{r, warning = F , message = F}
+# Note: File paths are always represented as character strings in quotes
+demo_data <- read_csv("../data/demo_data.csv")
+
+```
+
+
+## 2. Inspect the data
+
+### how many rows are in the data? 
+```{r}
+nrow(demo_data)
+```
+
+### how many columns are in the data? 
+```{r}
+ncol(demo_data)
+```
+
+###  print out the column names for each variable 
+```{r}
+names(demo_data)
+```
+
+### take a look at the first six rows of data
+
+```{r}
+head(demo_data)
+```
+
+### Variable types 
+- Our data has 2 numeric variables
+- and 3 categorical variables (characters). 
+- We can also see that there are missing values (NA's)
+```{r}
+summary(demo_data)
+```
+
+
+### view entire dataframe in a spreadsheet 
+OR you can navigate to the **Environment** pane and click on **demo_data** 
+```{r}
+#View(demo_data)
+
+```
+
+
+## 2. Indexing data
+The data is stored as rows and columns, like a matrix. 
+We can index the data with row and column indices:
+**data[rows, columns]**
+
+### show the first row of data
+```{r}
+demo_data[1,]
+```
+
+### show the first few rows of data
+```{r}
+demo_data[1:3,]
+```
+
+### show the first column of data, Participant_id
+```{r}
+demo_data[,1]
+```
+
+
+## 3. The power of the dataframe
+
+The data is actually a special R object, called a "data.frame"
+```{r}
+class(demo_data)[4]
+```
+
+Instead of indexing with numbers, with data frames, we can index with column names.
+
+This will make our life much easier when working with larger datasets and doing analysis. 
+
+Let's start with a simple example to illustrate. How many participants are there in this dataset?
+
+### show the Participant_id column
+```{r}
+demo_data$Participant_id
+```
+
+### Find the number of  participant IDs 
+**unique()** is a useful function that returns only the unique items (e.g. removes any duplicates).
+```{r}
+unique(demo_data$Participant_id)
+```
+
+### Assign it as a new object 
+The assign operator in R is <- 
+```{r}
+subject_list <- unique(demo_data$Participant_id)
+```
+
+### Find the length of that object
+```{r}
+length(subject_list)
+```
+
+### Find the number of rows in the data
+```{r}
+nrow(demo_data)
+```
+
+We can check if they're identical, by using **identical()** which returns TRUE or FALSE
+```{r}
+identical(length(subject_list), nrow(demo_data))
+
+```
+
+In this case, the number of subjects is the same as the number of rows, but this is a useful check when working with data that could have duplicates, or longitudinal data. 
+
+## 4. Missing values 
+
+In R, missing values are represented as **NA** - not 999 (MPlus) - or blanks (SPSS)
+
+### Are there NAs in the age variable? 
+
+The function **is.na()** returns a **logical vector**, where TRUE = is NA, and FALSE = not NA.
+```{r}
+is.na(demo_data$age)
+```
+
+### How many NAs are there in the age column? 
+We can add logical vectors with **sum()**, as if they were a column of 1 and 0s, where True = 1 and False = 0.
+```{r}
+sum(is.na(demo_data$age))
+```
+
+### Which row has the NA in the age column?
+We can use the logical vector to find the row index (number) where age = NA, and save it as an index. 
+```{r}
+NA_index <- which(is.na(demo_data$age))
+```
+
+### Which subject has NA in the age column? 
+We can use that index to obtain the participant with missing age data. 
+```{r}
+demo_data$Participant_id[NA_index]
+```
+
+### Replace NA with a new value
+We can use the assign operator to replace the NA with a value.
+```{r}
+# let's say that the NA  value should be  replaced with 52.
+demo_data$age[NA_index] <- 52
+```
