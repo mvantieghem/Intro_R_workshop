@@ -1,0 +1,147 @@
+---
+title: "Getting started with R"
+subtitle: "Lesson 1: The 3 Rs (R studio, R Markdown & R Projects)"
+date: "September 2020"
+output: 
+  html_document:
+    theme: flatly
+    highlight: haddock 
+    # code_folding: show
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+    keep_md: true
+---
+
+# Goals of this lesson:
+- Install packages
+- Introduction to R studio environment
+- Introduction to R projects
+- Introduction to R markdown 
+
+
+# 1.  Brief tour of R Studio 
+
+**Scripts:** These are individual files where you write code that you want to save.
+
+**Console:** Code that's run gets executed in the console. 
+
+**Environment:** Any objects, or data, that are loaded into the R session, or created during the R session, will appear here!
+
+Run this chunk of code, and you'll see the object "two" appear in the environment, which consists of the value "2". 
+```{r}
+# This is a code chunk that excutes code 
+two <- 1 + 1 
+```
+
+**Files:** Where you are on your computer, like finder within R studio.  If you're not already there, navigate to the directory where this file lives (click the three dots on the right hand side to open the file browser)
+
+**Packages:** A bunch of handy functions bundled up together. 
+Let's install some packages that we'll use in the tutorial.
+
+```{r}
+#install.packages(pkgs = c("readxl", "tidyverse", "knitr", "here"))
+```
+
+Packages are only installed once, but in order to access them, we need to load them into the current R session. 
+
+It's good practice to load packages that you will need at the beginning of each script.
+
+```{r}
+library(readxl)
+library(tidyverse)
+library(knitr)
+library(here)
+```
+
+# 2. R markdown 
+R markdown is a flexible document where you can write formatted text, run code, and display the results. This is an R markdown document! 
+
+**Why is R markdown useful for beginner R users?**
+
+1. It gets you in the habit of organizing your code into discrete chunks.
+2. It also encourages you to add comments to your code as you go.
+3. In order to successfully "knit" the file, your code must be free of errors! So it helps you learn how to de-bug your code. 
+
+**Code chunks:**  Where you write code to be executed. 
+You can add a new code chunk by clicking +insert 
+
+```{r}
+# This is a code chunk that excutes code 
+code = "my_code" 
+```
+
+**Markdown:** Style of formatting text, which you're seeing here. 
+Any text written in the white space of an Rmd file is markdown.
+
+**Knitting:** Generate a report from an R markdown file. 
+We can turn this file into an html report or word document with a press of a button! 
+
+1. hash out line 30 (installing packages)
+2. click "knit" 
+3. wait for the magic to happen!
+
+The "knitted" html is automatically saved as the same name as this file, in the same folder, with the .html extension.
+
+This is just the start! R markdown is highly customizable and you can generate html reports, manuscript drafts, or slides for a presentation. 
+
+# 3. R projects 
+Before explaining R projects, let's learn about working directories and file paths.
+
+**Working directory:** The path to the current location where the R session is working from.  
+```{r}
+here()
+```
+
+Are you somewhere random on your computer? Your current working directory is probably where ever you saved this Rmd file. 
+
+We need to know the working directory to open or save files.
+For example, let's save our "two" object to a csv file.
+By only including a file name, and no path, the file is automatically saved to the working directory. 
+```{r}
+write.csv(two, file = "two.csv")
+```
+
+What if we want to save this file to a specific folder? We can write out the **absolute path** to that exact folder, which can be long & prone to typos:
+
+```{r,  eval = F}
+# note: this won't work on your computer because the path doesn't exist!
+write.csv(two, file = "~/Documents/Columbia/grad_school/research/masters_proj/cortisol/cort_part1/data/raw_data/two.csv")
+
+```
+
+Or, we can write the file path **relative** to the current working directory.  Run this chunk of code, and then navigate two folders back in the R studio Files window. 
+
+```{r}
+# let's save the file to folders back
+write.csv(two, file = "../../two.csv")
+
+```
+
+Can you find the file on your computer?
+
+Relative paths are also good for reproducibility... 
+
+- If you need to run the code on a different machine 
+- if you want to share your code with others, so they can run it on a different machine.
+
+The **R project** is a placeholder that links the files in a specific directory.
+
+**Make a new project:**
+
+- File --> new project --> new directory --> new project
+- Name your project and save it on your computer in a directory you'll remember. 
+
+**Then, set up your project**
+
+- File --> open file --> navigate to where you saved this lesson, and open it. 
+- In the files window, make some new folders:
+-- scripts/
+-- data/
+-- tables/
+- save this file into the scripts folder!
+
+
+# Additional Resources:
+-  For more on R markdown, to customize your knitted files:
+https://rstudio.com/wp-content/uploads/2015/02/rmarkdown-cheatsheet.pdf
