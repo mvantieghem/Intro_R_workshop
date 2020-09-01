@@ -1,0 +1,104 @@
+---
+title: "Summarizing data in R: challenge"
+author: "Michelle VanTieghem"
+date: "Sept , 2020"
+output:
+  html_document:
+    number_sections: no
+    df_print: kable
+    code_folding: show
+    toc: yes
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
+---
+
+For this challenge, you're going to learn how to summarize a new dataset.
+We will use an example cort dataset generated for this course
+filepath: "../data/cort_data_wide.csv"
+
+# 0. Open packages 
+```{r, warning = F, message = F}
+# load packages 
+library(readxl)
+library(tidyverse)
+library(lubridate)
+```
+
+# 1. load the data
+add the file path to the read_csv() function
+```{r, message = F, warning = F}
+cort_data <- read_csv("../data/cort_data_wide.csv")
+```
+
+
+# 2. Inspect the data 
+
+How many rows and columns does this dataset have?
+hint: use nrow() and ncol()
+```{r}
+nrow(cort_data)
+ncol(cort_data)
+```
+
+What are the column names of the data?
+hint: use  names()
+```{r}
+names(cort_data)
+
+```
+
+Take a glimpse of the data
+```{r}
+glimpse(cort_data)
+
+```
+
+There are a lot of variables in this  dataset! 
+For now, we will focus on the cortisol variable 'cort_waking1', 
+and the grouping variable 'caregiver_type'.
+
+
+#  3. Summarizing data 
+
+### Are there missing cort values?
+hint: use sum(is.na())
+```{r}
+sum(is.na(cort_data$cort_waking1))
+```
+
+### using summarize(), calculate the mean and SD of variable called 'cort_waking1'
+hint: remember to remove NA values with na.rm  = T
+```{r}
+cort_data %>%
+  summarize(mean = mean(cort_waking1, na.rm = T), 
+            sd = sd(cort_waking1, na.rm = T))
+```
+
+### using group_by(), calculate how many participants had which 'caregiver type'
+hint: you have 2 options, use count() or summarize(n = n())
+```{r}
+cort_data %>%
+  group_by(caregiver_type) %>% 
+  count()
+
+```
+
+### combine these tables: 
+use group_by() and summarize() to compute the mean and sd cortisol values by caregiver type.
+hint: don't forget to remove NAs with na.rm = T
+```{r}
+cort_data %>%
+  group_by(caregiver_type) %>%
+  summarize(n = n(), 
+            mean =  mean(cort_waking1, na.rm = T), 
+            sd = sd(cort_waking1, na.rm = T))
+
+```
+
+### save this table to csv format using write.csv()
+hint: don't forget the argument row.names = F
+```{r}
+
+
+```

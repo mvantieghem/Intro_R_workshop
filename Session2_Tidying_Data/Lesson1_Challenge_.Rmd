@@ -1,0 +1,87 @@
+---
+title: "Summarizing data in R: challenge"
+author: "Michelle VanTieghem"
+date: "Sept , 2020"
+output:
+  html_document:
+    number_sections: no
+    df_print: kable
+    code_folding: show
+    toc: yes
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
+---
+
+For this challenge, you're going to learn how to summarize a new dataset.
+We will use an example cort dataset generated for this course
+filepath: "../data/cort_data_wide.csv"
+
+# 0. Open packages 
+```{r, warning = F, message = F}
+# load packages 
+library(readxl)
+library(tidyverse)
+library(lubridate)
+```
+
+# 1. load the data
+add the file path to the read_csv() function
+```{r, message = F, warning = F}
+```
+
+
+# 2. Inspect the data 
+
+How many rows and columns does this dataset have?
+hint: use nrow() and ncol()
+```{r}
+```
+
+What are the column names of the data?
+hint: use  names()
+```{r}
+
+```
+
+Take a glimpse of the data
+```{r}
+
+```
+
+There are a lot of variables in this  dataset! 
+For now, we will focus on the cortisol variable 'cort_waking1', 
+and the grouping variable 'caregiver_type'.
+
+
+#  3. Summarizing data 
+
+### Are there missing cort values?
+hint: use sum(is.na())
+```{r}
+```
+
+### using summarize(), calculate the mean and SD of variable called 'cort_waking1'
+hint: remember to remove NA values with na.rm  = T
+```{r}
+```
+
+### using group_by(), calculate how many participants had which 'caregiver type'
+hint: you have 2 options, use count() or summarize(n = n())
+```{r}
+
+```
+
+### combine these tables: 
+use group_by() and summarize() to compute the mean and sd cortisol values by caregiver type.
+hint: don't forget to remove NAs with na.rm = T
+```{r}
+
+```
+
+### save this table to csv format using write.csv()
+hint: don't forget the argument row.names = F
+```{r}
+
+
+```
