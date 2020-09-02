@@ -28,6 +28,7 @@ library(lubridate)
 # 1. load the data
 add the file path to the read_csv() function
 ```{r, message = F, warning = F}
+cort_data <- read_csv("../data/cort_data_wide.csv")
 ```
 
 
@@ -36,16 +37,20 @@ add the file path to the read_csv() function
 How many rows and columns does this dataset have?
 hint: use nrow() and ncol()
 ```{r}
+nrow(cort_data)
+ncol(cort_data)
 ```
 
 What are the column names of the data?
 hint: use  names()
 ```{r}
+names(cort_data)
 
 ```
 
 Take a glimpse of the data
 ```{r}
+glimpse(cort_data)
 
 ```
 
@@ -59,16 +64,24 @@ and the grouping variable 'caregiver_type'.
 ### Are there missing cort values?
 hint: use sum(is.na())
 ```{r}
+sum(is.na(cort_data$cort_waking1))
 ```
 
 ### using summarize(), calculate the mean and SD of variable called 'cort_waking1'
 hint: remember to remove NA values with na.rm  = T
 ```{r}
+cort_data %>%
+  summarize(mean = mean(cort_waking1, na.rm = T), 
+            sd = sd(cort_waking1, na.rm = T))
 ```
 
 ### using group_by(), calculate how many participants had which 'caregiver type'
 hint: you have 2 options, use count() or summarize(n = n())
 ```{r}
+my_table <- cort_data %>%
+  rename('Caregiver Type' = caregiver_type) %>%
+  group_by('Caregiver Type') %>% 
+  count()
 
 ```
 
@@ -76,7 +89,14 @@ hint: you have 2 options, use count() or summarize(n = n())
 use group_by() and summarize() to compute the mean and sd cortisol values by caregiver type.
 hint: don't forget to remove NAs with na.rm = T
 ```{r}
+pretty_table <- cort_data %>%
+  group_by(caregiver_type) %>%
+  summarize(N = n(), 
+            Mean =  mean(cort_waking1, na.rm = T), 
+            Sd = sd(cort_waking1, na.rm = T))
 
+pretty_table %>% 
+  rename('Caregiver Type' = caregiver_type)
 ```
 
 ### save this table to csv format using write.csv()
