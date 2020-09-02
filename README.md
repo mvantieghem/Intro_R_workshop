@@ -7,18 +7,18 @@ My hope is that students will walk away from this tutorial convinced that using 
 
 So, instead of starting with programming basics like operators, vectors, and logical statements, we will start with setting up R projects and R markdown notebooks before doing any real "coding". Then students will learn principles of tidying data, modeling, and visualizing data with R. 
 
-### Session 1: Getting Started
+### Getting Started
 - Intro slides: Why R? 
 - Lesson 1: The 3 Rs (R studio, R Markdown & R Projects)
 - Lesson 2: Dataframe Basics in R 
 
-### Session 2: Tidying data 
-- Lesson 1: Summarizing data 
-- Lesson 2: Manipulating data 
+### Tidying data 
+- Lesson 3: Summarizing data 
+- Lesson 4: Manipulating data 
 
-### Session 3: Analyzing data
-- Lesson 1: Basic statistics and models in R 
-- Lesson 2: Visualizing data with ggplot
+### Analyzing data
+- Lesson 5: Basic statistics and models in R 
+- Lesson 6: Visualizing data with ggplot
 
 
 
