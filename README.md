@@ -24,9 +24,9 @@ So, instead of starting with programming basics like operators, vectors, and log
 [Columbia University Psych Computing - Intro R tutorial](https://cu-psych-computing.github.io/cu-psych-comp-tutorial/tutorials/r-core/)
 
 ## Data
-Two sample (fake) datasets are used in this tutorial: \
-- demo_data.csv \
-- cort_data_wide.csv \
+Two sample (fake) datasets are used in this tutorial: 
+- demo_data.csv 
+- cort_data_wide.csv 
 
 ## Challenges 
 These are coding challenges to accompany Lessons 3-6. 
