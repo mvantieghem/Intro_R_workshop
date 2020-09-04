@@ -1,0 +1,88 @@
+---
+title: "Manipulating data in R: challenge"
+date: "Sept , 2020"
+output:
+  html_document:
+    number_sections: no
+    df_print: kable
+    code_folding: show
+    toc: yes
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
+---
+
+## key concepts:
+- View data with **hist()**
+- Exclude data with **filter()**
+- Create new variables with **mutate()**
+- Change variable names with **rename()**
+- Subset variables with **select()**
+
+
+## 0. Open packages 
+```{r, warning = F, message = F}
+# load packages 
+library(readxl)
+library(tidyverse)
+```
+
+## 1. load the data
+
+Open the  demographics data
+
+```{r}
+
+```
+
+## 2. Inspect the data
+visualize age with a histogram
+```{r}
+
+```
+
+## 3. clean / filter the data
+
+filter the data to only include males over the age of 30. 
+save the cleaned data as "demo_clean"
+```{r}
+
+
+```
+
+how many participants are in your cleaned dataset? 
+```{r}
+
+```
+
+## 4. Create new variables 
+
+Create a new variable called age_squared, which is the square of age.
+hint, the expression in R for squaring is "^2"
+```{r}
+
+
+```
+
+make a histogram of the new variable
+```{r}
+
+
+```
+
+##  5. Rename variables
+
+Rename the variable "intervention" to "Group"
+```{r}
+
+
+```
+
+## 6. Select variables
+
+create  a dataframe that only has 3 columns, Participant_id, age, and age_squared.
+save this dataframe as "age_data" 
+```{r}
+
+
+```

@@ -1,0 +1,190 @@
+---
+title: "Tidy data"
+subtitle: "Lesson 5: Merge and reshape data"
+date: "September 2020"
+output: 
+  html_document:
+    theme: flatly
+    highlight: haddock 
+    # code_folding: show
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+    keep_md: true
+---
+
+## Goals of this lesson:
+- Merge datasets together with **join()**
+- Reshape data from wide to long with **pivot_longer()** 
+- Reshape data from long to wide withs **pivot_wider()**
+- String manipulation in character variables
+
+## 0. load packages 
+```{r, warning = F, message = F}
+# load packages 
+library(readxl)
+library(tidyverse)
+```
+
+## 1. load data 
+
+Open two datasets, the demographic data and the cleaned cortisol data.
+
+```{r}
+cort_data_clean <- read.csv ("../clean_data/cort_clean_wide.csv")
+
+demo_data <- read.csv("../data/demo_data.csv")
+```
+
+
+## 2. Merge datasets 
+
+Merging data, also called "joining" data, matches two datasets by "keys".
+
+keys are variables that are in both datasets.
+
+In this case, the key is 'participant_id'.
+
+### Check your 'key' variable
+Let's take a look at participant ID in each dataset: 
+```{r}
+head(demo_data$Participant_id)
+```
+
+This one isn't in the same format!
+```{r}
+head(cort_data_clean$Participant_id)
+```
+
+We are missing the "P" infront of the ID number.
+
+Let's reformat Participant_id using **paste0()** and **mutate()**
+
+Paste0() is a handy function pastes together strings!
+```{r}
+cort_data_clean <- cort_data_clean %>%
+  mutate(Participant_id = paste0("P", Participant_id))
+
+head(cort_data_clean$Participant_id)
+```
+
+### Perform the join / merge
+
+**left_join()** will join two datsets, where the data on the left is the "base", and the data on the right will be added on the right hand side.  s
+
+```{r}
+cort_clean_demo <- left_join(cort_data_clean, demo_data, by = "Participant_id")
+```
+
+Remember, our demo data has 100 subjects, but our clean cort data only has 30 subjects. 
+By using **left_join()**, only the data on the left hand size (30 subjects) will be carried over into the new dataset. Let's check:
+```{r}
+nrow(cort_clean_demo)
+```
+
+
+If we wanted to keep all subjects, we can switch the order of data, so that demo_data is our 'base', and we add cort data to the right side. 
+```{r}
+cort_all_demo <-  left_join(demo_data, cort_data_clean,
+                            by = "Participant_id")
+
+nrow(cort_all_demo)
+
+```
+
+We won't use this data though, because it just has many rows with missing data.
+```{r}
+tail(cort_all_demo)
+
+```
+
+## 4. Reshape data from wide to long
+
+Also called 'pivoting' data, when you convert a dataset from wide format to long format.
+
+The data is currently in "wide" format, with each row representing a participant. 
+However, we have  repeated observations of cortisol (time of day: morning, evening) and days (day 1, day 2). 
+
+Some statistical analyses require long format, where each row is an individual observation, and participants have as many rows as they have observations.  
+
+**pivot_longer()** is a tidyverse function that transforms several columns into a single column, creating a long dataset. 
+```{r}
+cort_long <- cort_clean_demo %>%
+  # columns that have repeated data --> will become a single row
+  pivot_longer(cols = starts_with("log"), 
+               # name of the new label column (waking, evening)
+               names_to = "time_of_day", 
+               # prefix to remove from the labels 
+               names_prefix = "log_cort_", 
+                # name of the new value column (which will contain the cort values)
+               values_to = "log_cort")
+               
+```
+
+We can see that the first several variables are repeated across several rows.
+Note: the new (long) variables have been added to the far right of the dataframe.
+```{r}
+head(cort_long)
+```
+
+There are now 120 rows, because each subject (30)  has 4 cort observations.
+```{r}
+nrow(cort_long)
+```
+
+
+### Side note: string manipulation
+
+We still haven't made a variable for day (day 1, day2).
+We need to  do some string manipulation to  separate the 'time of day' from the day number. 
+
+**parse_number()** extracts only the numeric values from a string.
+
+**str_extract()** extracts characters from a string, depending on your specification.
+```{r}
+cort_long <- cort_long %>%
+  mutate(day = parse_number(time_of_day), 
+         # [a-z]+ means that we will keep any letters from a-z
+         time_of_day = str_extract(time_of_day, "[a-z]+"))
+
+head(cort_long)
+
+```
+
+
+## 5. Reshape the data from long to wide 
+
+Let's restore the original 'wide' format of the data using **pivot_wider()**
+```{r}
+
+cort_wide <- cort_long %>%
+  # where to obtain the names / labels for  the new wide columns
+  pivot_wider(names_from = c(time_of_day, day), 
+               # prefix to be  added to the new wide columns
+                names_prefix = "log_cort_", 
+              # values of the new wide columns
+              values_from = c(log_cort))
+
+nrow(cort_wide)
+```
+
+```{r}
+head(cort_wide)
+```
+
+To check that the wide data has been correctly restored, 
+is the new cort variable identical to the original cort variable?
+
+```{r}
+#identical(new, original)
+identical(cort_wide$log_cort_waking_1, cort_data_clean$log_cort_waking1)
+```
+
+
+Save your cleaned data!
+```{r}
+# this is the cort in long format, with demo added. 
+write.csv(cort_long, "../clean_data/cort_clean_demo_long.csv", row.names = F)
+```
+
+

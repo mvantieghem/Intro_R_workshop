@@ -1,0 +1,167 @@
+---
+title: "Tidy data"
+subtitle: "Lesson 4: Manipulating data"
+date: "September 2020"
+output: 
+  html_document:
+    theme: flatly
+    highlight: haddock 
+    # code_folding: show
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+    keep_md: true
+---
+
+## Goals of this lesson:
+- View data with histograms 
+- Exclude data with **filter()**
+- Create new variables with **mutate()**
+- Change variable names with **rename()**
+- Subset variables with **select()**
+
+
+## 0. Open packages 
+```{r, warning = F, message = F}
+# load packages 
+library(readxl)
+library(tidyverse)
+```
+
+## 1. load cortisol data 
+```{r, message = F, warning = F}
+cort_data <- read_csv("../data/cort_data_wide.csv")
+```
+
+## 2. Inspect data 
+
+First, look at the data to s ee what we're working with.
+
+We have four cortisol measurements. These represent waking and bedtime values collected across 2 days. The dates of cortisol collection are "cdate1" and "cdate2". 
+
+We also have participant id and a categorical variable, caregiving type.
+```{r}
+glimpse(cort_data)
+```
+
+We also have a lot of missing data!
+```{r}
+sum(is.na(cort_data$cort_waking1))
+sum(is.na(cort_data$cort_waking2))
+```
+
+### Visualize data with histogram
+
+let's do a simple histogram:
+
+```{r}
+hist(cort_data$cort_bedtime2)
+```
+
+Two observations:  
+1) There are extreme outliers in the cort data  
+2) The data is not normally distributed 
+
+
+## 3. Clean / filter the data
+
+The standard cut-off for biologically plausible cortisol values is 2, so let's remove any value > 2. 
+
+We previously used **filter()** to remove NAs, but it can work with any logical expression. 
+
+**Note**: If you use conditional logic based on a value, and some rows have NA for that value, the NA rows will also be excluded by default! 
+```{r}
+cort_data_clean <- cort_data %>%
+  filter(cort_waking1 < 2 & 
+           cort_waking2 < 2 & 
+           cort_bedtime1 < 2 & 
+           cort_bedtime2 < 2)
+```
+
+### How many participants were excluded? 
+
+Let's make a little table by counting the rows of the raw data and cleaned data
+```{r}
+N_total <- nrow(cort_data)
+N_included <- nrow(cort_data_clean)
+N_excluded <- N_total - N_included
+
+# data.frame() will combine the items into a dataframe
+# which is just a little table here.
+data.frame(N_total, N_included, N_excluded)
+```
+
+We had a lot of outliers! This is fake data, so we'll be ok with this. 
+
+## 4. Create new variables
+
+Let's log-transform the cortisol values to normalize the distribution. 
+
+The **mutate()** function applies an operation to the input value, and generates a new column. 
+
+```{r}
+cort_data_clean <- cort_data_clean %>%
+  mutate(log_cort_waking1 = log(cort_waking1), 
+         log_cort_waking2 = log(cort_waking2), 
+         log_cort_bedtime1 = log(cort_bedtime1),
+         log_cort_bedtime2 = log(cort_bedtime2))
+```
+
+Let's check the distribution now.
+```{r}
+hist(cort_data_clean$log_cort_bedtime2)
+```
+
+
+## 5. Renaming variables 
+
+While we're cleaning up the data, let's also rename some less-obvious variable names. 
+
+```{r}
+cort_data_clean <- cort_data_clean %>%
+  rename(cort_date1 = cdate1, 
+         cort_date2 = cdate2)
+
+```
+
+## 6. Selecting variables
+
+Let's take a look at the data now.
+```{r}
+head(cort_data_clean)
+```
+
+We still have the raw cort values, and the logged values.
+Let's clean up and remove the variables with raw values from the dataset. 
+
+The **select()** function let's you subset variables that you want to maintain, or discard. Any variable names inside the parentheses will be kept, unless they have a minus sign, in which case they will be removed.  
+
+Here, we're going to remove the raw cort variables (and keep everything else)
+
+```{r}
+cort_data_clean1 <- cort_data_clean %>%
+  select(-cort_waking1, -cort_waking2, -cort_bedtime1, -cort_bedtime2)
+```
+
+###  A short-cut:
+
+Selecting variables one-by-one can get very tedious when you have many columns.
+
+The **starts_with()** function captures strings that start with the specific pattern you provide. It's automatically going to capture the 4 variables that start with "cort" (and remove them)
+```{r}
+cort_data_clean2 <- cort_data_clean %>%
+  select(-starts_with("cort"))
+
+names(cort_data_clean2)
+```
+
+
+## Save your data
+
+First, make a new folder called "clean_data" in the Files panel.
+
+```{r}
+# this is the cort in wide format, with the demo data added.
+write.csv(cort_data_clean1, "../clean_data/cort_clean_wide.csv", row.names = F)
+```
+
