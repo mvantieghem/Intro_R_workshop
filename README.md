@@ -15,10 +15,11 @@ So, instead of starting with programming basics like operators, vectors, and log
 ### Tidying data 
 - Lesson 3: Summarizing data 
 - Lesson 4: Manipulating data 
+- Lesson 5: Merging and reshaping data
 
 ### Analyzing data
-- Lesson 5: Basic statistics and models in R*
-- Lesson 6: Visualizing data with ggplot*
+- Lesson 6: Basic statistics and models in R*
+- Lesson 7: Visualizing data with ggplot*
 
 *Content adapted from the
 [Columbia University Psych Computing - Intro R tutorial](https://cu-psych-computing.github.io/cu-psych-comp-tutorial/tutorials/r-core/)
