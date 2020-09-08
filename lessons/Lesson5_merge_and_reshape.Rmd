@@ -49,6 +49,9 @@ In this case, the key is 'participant_id'.
 Let's take a look at participant ID in each dataset: 
 ```{r}
 head(demo_data$Participant_id)
+
+demo_data <- demo_data %>%
+  mutate(Participant_id =  Participant_id)
 ```
 
 This one isn't in the same format!
@@ -66,11 +69,12 @@ cort_data_clean <- cort_data_clean %>%
   mutate(Participant_id = paste0("P", Participant_id))
 
 head(cort_data_clean$Participant_id)
+
 ```
 
 ### Perform the join / merge
 
-**left_join()** will join two datsets, where the data on the left is the "base", and the data on the right will be added on the right hand side.  s
+**left_join()** will join two datsets, where the data on the left is the "base", and the data on the right will be added on the right hand side.  
 
 ```{r}
 cort_clean_demo <- left_join(cort_data_clean, demo_data, by = "Participant_id")
@@ -81,7 +85,6 @@ By using **left_join()**, only the data on the left hand size (30 subjects) will
 ```{r}
 nrow(cort_clean_demo)
 ```
-
 
 If we wanted to keep all subjects, we can switch the order of data, so that demo_data is our 'base', and we add cort data to the right side. 
 ```{r}
@@ -110,9 +113,9 @@ Some statistical analyses require long format, where each row is an individual o
 **pivot_longer()** is a tidyverse function that transforms several columns into a single column, creating a long dataset. 
 ```{r}
 cort_long <- cort_clean_demo %>%
-  # columns that have repeated data --> will become a single row
+  # columns that have repeated data --> will become a single variable 
   pivot_longer(cols = starts_with("log"), 
-               # name of the new label column (waking, evening)
+               # name of the new label column (waking, bedtime)
                names_to = "time_of_day", 
                # prefix to remove from the labels 
                names_prefix = "log_cort_", 
@@ -127,7 +130,7 @@ Note: the new (long) variables have been added to the far right of the dataframe
 head(cort_long)
 ```
 
-There are now 120 rows, because each subject (30)  has 4 cort observations.
+There are now 120 rows, because each subject (29)  has 4 cort observations.
 ```{r}
 nrow(cort_long)
 ```
@@ -143,12 +146,11 @@ We need to  do some string manipulation to  separate the 'time of day' from the 
 **str_extract()** extracts characters from a string, depending on your specification.
 ```{r}
 cort_long <- cort_long %>%
-  mutate(day = parse_number(time_of_day), 
+  mutate(day = parse_number(time_of_day),
          # [a-z]+ means that we will keep any letters from a-z
-         time_of_day = str_extract(time_of_day, "[a-z]+"))
+        time_of_day = str_extract(time_of_day, "[a-z]+"))
 
 head(cort_long)
-
 ```
 
 

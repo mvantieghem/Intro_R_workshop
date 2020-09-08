@@ -1,0 +1,293 @@
+---
+title: "Lesson 6: Plotting with ggplot"
+subtitle: "Materials from CU Psych Scientific Computing Workshop"
+date: "September 2020"
+output: 
+  html_document:
+    theme: flatly
+    highlight: haddock 
+    # code_folding: show
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+    keep_md: true
+---
+
+## Goals of this lesson:
+- recode variables with  `recode()`
+- Basic ggplot syntax 
+- Example plot types
+- Plot Formatting
+- Saving plots
+
+## What's `ggplot2`?
+
+ggplot2 is a package in R that allows for highly customizable and pretty plots! Here, were going to learn a few basics of making plots using `ggplot2` that will hopefully get you well on your way to making informative and beautiful data visualizations!
+
+## Links to Files
+This lesson was adapted from the Columbia University Psychology Scientific Computing Workshop. The files for all tutorials can be downloaded from [the Columbia Psychology Scientific Computing GitHub page](https://github.com/cu-psych-computing/cu-psych-comp-tutorial){target="_blank"} using [these instructions](/accessing-files/){target="_blank"}. The original file is located here: `/content/tutorials/r-core/4-plotting/index.rmd`.
+
+# 0. Load Packages 
+
+load `tidyverse`, which includes `ggplot2`
+
+```{r, include=FALSE}
+library(tidyverse)
+```
+
+## 1. Load in sample data
+
+We're going to practice here on a dataset from the 1990 NHANES (National Health and Nutrition Examination Survey). The variables are below. 
+
+Region  -  Geographic region in the USA: Northeast (1), Midwest (2), South (3), and West (4)
+
+Sex     -  Biological sex: Male (1), Female (2)
+
+Age     -  Age measured in months (we'll convert this to years below)
+
+Urban   -  Residential population density: Metropolital Area (1), Other (2)
+
+Weight  -  Weight in pounds
+
+Height  -  Height in inches
+
+BMI     -  BMI, measured in kg/(m^2)
+
+```{r}
+nhanes <- read_csv("../data/NHANES1990.csv")
+head(nhanes)
+```
+
+### Cleaning up the data
+Let's `recode()` variables, so that numeric codes are changed to character labels
+
+Side note: we need to add `dplyr::` infront of `recode()` because many different packages have a function called "recode", and we need to tell R which version to use. `dplyr` is a package in the tidyverse. 
+```{r}
+nhanes <- nhanes %>%
+    mutate(Age = Age/12, # convert age to years
+          Urban = dplyr::recode(Urban, '1' = 'Metro Area', '2' = 'Non-Metro Area'),
+          Region = dplyr::recode(Region, '1' = 'Northeast', '2' = 'Midwest', '3' = 'South', '4' = 'West'), 
+          Sex = dplyr::recode(Sex, '1' = "Male", '2'="Female"))
+
+head(nhanes)
+```
+
+## 2. Basic `ggplot2` Syntax
+
+-`ggplot()` command usage including saving to a variable with `a <- ggplot()`
+
+-The general format is `ggplot(data, aes(x = [x variable], y = [y variable])` 
+    - x and y variables are always specified in this `aes()` subfunction
+
+Run this line of code:
+
+```{r}
+ggplot(nhanes, aes(x = Age, y = Weight))
+```
+  
+  * Axes are set up the way we'd expect, and seem to have sensible values
+  * Why is nothing on this graph yet? we haven't put any graphic actually on the axes yet
+
+`We need to tell the ggplot() call what kind of graphic to put on the axis`
+
+  * A lot of the time, the syntax is `geom_[something]`
+
+## 3. Example Plot Types
+
+### Scatter plots
+
+Let's do scatter with `geom_point()` first.
+
+```{r}
+ggplot(nhanes, aes(x = Age, y = Weight)) + 
+  geom_point()
+```
+
+Wow, lots of data points! 
+
+We can make the points smaller with `size` and make them slightly transparent with `alpha`.
+
+```{r}
+ageWeightPlot <- ggplot(nhanes, aes(x = Age, y = Weight)) + 
+  geom_point(size = .1, alpha = .3)
+
+ageWeightPlot
+```
+
+Next, we can change the color of the data points by Sex. 
+
+We put `color = Sex` into the `aes()` function because it's a grouping factor.
+
+
+```{r}
+ageWeightPlot <- ggplot(nhanes, aes(x = Age, y = Weight)) + 
+  geom_point(size = 1, alpha = .3, aes(color = Sex))
+
+ageWeightPlot
+```
+
+### Histograms
+
+Test out changing bins # and see how the histogram changes.
+
+Side note: For spaces that can be filled in with color (e.g. histogram), we use the term `fill` instead of `color`.
+
+```{r}
+weightHistogram <- ggplot(nhanes, aes(x= Weight)) +
+  geom_histogram(bins = 100, fill = 'dark blue')
+weightHistogram
+```
+
+Do you hate the gray background? We can change the plot aesthetics with `themes()`
+
+More themes can be found here: https://ggplot2.tidyverse.org/reference/ggtheme.html
+
+```{r}
+weightHistogram <- ggplot(nhanes, aes(x= Weight)) +
+  geom_histogram(bins = 100, fill = 'dark blue') + 
+  theme_bw()
+weightHistogram
+```
+
+Let's fill the histogram colors by Sex. 
+
+`scale_fill_manual()` allows us to add customized colors instead of the default colors when using more than one color.
+
+More on color palettes can be found here: http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/
+```{r}
+weightSexHistogram <- ggplot(nhanes, aes(x= Weight)) +
+  geom_histogram(bins = 100, aes(fill = Sex), alpha = 0.5) + 
+  scale_fill_manual(values=c("dark red", "dark blue")) + 
+  theme_bw()
+weightSexHistogram
+```
+
+### Boxplots 
+
+Let's compare the distributions of weight, by sex, side by side with a boxplot.
+
+In ggplot, the boxplot automatically calculates the quartiles of the distribution (not mean and sd). 
+So the center line represents the median, and the box includes the 2st and 3th quartiles.
+
+```{r}
+weightbySexBox<- ggplot(nhanes, aes(x= Sex, y = Weight)) +
+  geom_boxplot(aes(fill = Sex), alpha = 0.5)  +
+  scale_fill_manual(values=c("dark red", "dark blue")) + 
+  theme_bw()
+
+weightbySexBox
+
+```
+
+### Summary plots
+
+What if we want to plot the mean and standard deviation for Males and Females?
+
+First, let's make a summary table 
+```{r}
+weight_table <- nhanes %>%
+  group_by(Sex) %>%
+  summarize(mean_weight = mean(Weight), 
+            sd_weight = sd(Weight), 
+            upper = mean_weight + sd_weight, 
+            lower = mean_weight - sd_weight)
+
+weight_table
+```
+
+#### bar-graph summary plot
+
+`geom_bar()` will make a bar plot.
+
+`stat = "identity"` means that we want to use the exact values we provided in the table. 
+
+`geom_errorbar()` takes two main arguments: ymin and ymax, and width sets the appearance of the bars 
+```{r}
+# notice that we changed the data - using summary table instead of raw data.
+weightbySexBar <- ggplot(data = weight_table, aes(x = Sex, y = mean_weight)) +
+   geom_bar(aes(fill = Sex), stat = "identity",alpha = 0.5) + 
+   geom_errorbar(aes(ymin = lower, ymax = upper), width = 0.5) + 
+   scale_fill_manual(values = c("dark red", "dark blue")) + 
+  theme_bw()
+
+weightbySexBar
+
+```
+
+
+#### dot-plot summary plot
+
+new argument: `ylim()` will set the y axis range (it's good practice to start at zero)
+
+Side note: here, we use 'color' instead of 'fill' because they are dots and lines, not spaces to fill. 
+```{r}
+
+weightbySexDot <- ggplot(data = weight_table, aes(x = Sex, y = mean_weight)) +
+               geom_point(aes(color = Sex), size = 2) + 
+               geom_errorbar(aes(color = Sex, ymin = lower, ymax = upper), width = 0) + 
+               scale_color_manual(values = c("dark red", "dark blue")) + 
+               ylim(0, 300) + theme_bw()
+
+weightbySexDot
+```
+
+Let's add the raw data points with `geom_jitter()`. 
+
+Test out what happens when you change the width and weight aguments.
+```{r}
+
+weightbySexDotRaw <- ggplot(data = weight_table, aes(x = Sex, y = mean_weight)) +
+  # add jittered points of raw data with lots of transparency, because there are so many points.
+   geom_jitter(data = nhanes, aes(x = Sex, y = Weight),
+              alpha = 0.1, size = .1,height = 0, width = 0.1, color = "gray") + 
+  # this code is identical to the plot above, we are just layering it on.
+               geom_point(aes(color = Sex), size = 2) + 
+               geom_errorbar(aes(color = Sex, ymin = lower, ymax = upper), width = 0) + 
+               scale_color_manual(values = c("dark red", "dark blue")) + 
+               ylim(0, 300)  + theme_bw()
+
+weightbySexDotRaw
+```
+
+Side note: "Removed 121 rows containing missing values" indicates that we are cutting-off our data. 
+Now that we've added raw data, the range of values for Weight is much wider. Try expanding ylim.
+
+
+## 4. Plot Formatting
+
+### Titles and axis labels
+
+The `labs()` command can be added to `ggplot2` with different arguments, lke `x`, `y`, or `title` to make the plots clearer.
+
+```{r}
+# we'll leave X blank, becasue we already have useful tick labels.
+
+weightbySexDotRaw + labs(x = ' ', y = 'Weight in Pounds', title = 'Sex differences in weight')
+```
+
+
+### Facetting plots
+
+Does the relationship between Age and weight differ by sex? 
+
+We can use the `facet_wrap()` function to look at Males and Females separately.
+
+```{r}
+facetPlot <- ggplot(nhanes, aes(x = Height, y = Weight)) + 
+  geom_point(alpha = .1, size = .1) + 
+  facet_wrap(~Sex) + theme_bw()
+
+facetPlot
+```
+
+
+## Saving to Files
+
+`ggsave()` includes arguments for `file` , `plot`, `dpi` (resolution), `width`, and `height`.
+
+We can use a variety of file formats (png, pdf, jpeg, tiff).
+
+```{r, eval = FALSE}
+ggsave('newPlotTest.pdf', plot = facetPlot, dpi = 300, width = 5, height = 5)
+```
+

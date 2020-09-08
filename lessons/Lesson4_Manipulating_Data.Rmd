@@ -72,11 +72,12 @@ We previously used **filter()** to remove NAs, but it can work with any logical 
 **Note**: If you use conditional logic based on a value, and some rows have NA for that value, the NA rows will also be excluded by default! 
 ```{r}
 cort_data_clean <- cort_data %>%
-  filter(cort_waking1 < 2 & 
-           cort_waking2 < 2 & 
-           cort_bedtime1 < 2 & 
-           cort_bedtime2 < 2)
+  filter(cort_waking1 < 2 & cort_waking1 > 0 &
+           cort_waking2 < 2 & cort_waking2 > 0 &
+           cort_bedtime1 < 2 & cort_bedtime1 > 0 &
+           cort_bedtime2 < 2 & cort_bedtime2 > 0)
 ```
+
 
 ### How many participants were excluded? 
 
@@ -101,6 +102,7 @@ The **mutate()** function applies an operation to the input value, and generates
 
 ```{r}
 cort_data_clean <- cort_data_clean %>%
+  # new variable  on left, transformation on the right
   mutate(log_cort_waking1 = log(cort_waking1), 
          log_cort_waking2 = log(cort_waking2), 
          log_cort_bedtime1 = log(cort_bedtime1),
@@ -119,9 +121,9 @@ While we're cleaning up the data, let's also rename some less-obvious variable n
 
 ```{r}
 cort_data_clean <- cort_data_clean %>%
+  # new name on left, old name is  on the  right
   rename(cort_date1 = cdate1, 
          cort_date2 = cdate2)
-
 ```
 
 ## 6. Selecting variables
@@ -141,6 +143,9 @@ Here, we're going to remove the raw cort variables (and keep everything else)
 ```{r}
 cort_data_clean1 <- cort_data_clean %>%
   select(-cort_waking1, -cort_waking2, -cort_bedtime1, -cort_bedtime2)
+
+# another way 
+cort_data_clean0 <- cort_data_clean[, 6:ncol(cort_data_clean)]
 ```
 
 ###  A short-cut:

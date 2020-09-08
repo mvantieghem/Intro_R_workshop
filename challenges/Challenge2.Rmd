@@ -29,7 +29,7 @@ library(tidyverse)
 
 ## 1. load the data
 
-Open the  demographics data
+Open the demographics data
 
 ```{r}
 

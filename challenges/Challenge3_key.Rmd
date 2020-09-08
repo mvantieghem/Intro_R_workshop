@@ -1,0 +1,83 @@
+---
+title: "Merging and reshape data: challenge"
+date: "Sept , 2020"
+output:
+  html_document:
+    number_sections: no
+    df_print: kable
+    code_folding: show
+    toc: yes
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
+---
+
+## key concepts:
+- Merge datasets together with **join()**
+- Reshape data from wide to long with **pivot_longer()** 
+- Reshape data from long to wide withs **pivot_wider()**
+
+## 0. load packages 
+```{r, warning = F, message = F}
+# load packages 
+library(readxl)
+library(tidyverse)
+```
+
+## 1. load data 
+open the demographic data and a new dataset, mri_data.csv
+```{r}
+demo_data <- read.csv("../data/demo_data.csv")
+mri_data <-   read.csv("../data/mri_data.csv")
+```
+
+
+## 2. Merge the  data
+
+merge the demo and mri data using 'Participant_id' as the key. 
+
+use left_join(), with the demographic data as the base, 
+and mri added to the right side
+
+name the new dataframe 'mri_demo'
+```{r}
+mri_demo <- left_join(demo_data, mri_data, by = "Participant_id")
+```
+
+## 3. Reshape the data from wide to long
+
+Repeated variables: brain_volume1, brain_volume2, brain_volume3 
+
+create a long dataset called "mri_long"
+with a column named "timepoint" with values 1,2,3
+and a column named "brain_volume" that contains the values of the brain volume variables.
+```{r}
+
+mri_long <- mri_demo  %>%
+  # columns that have repeated data --> will become a single row
+  pivot_longer(cols = starts_with("brain"), 
+               # name of the new label column (waking, evening)
+               names_to = "timepoint", 
+               # prefix to remove from the labels 
+               names_prefix = "brain_volume", 
+                # name of the new value column (which will contain the cort values)
+               values_to = "brain_volume")
+
+mri_long
+```
+
+## 4. Reshape the data from long to wide 
+
+Reproduce the wide dataset from the long data you just created.
+
+```{r}
+mri_wide <- mri_long %>%
+  # where to obtain the names / labels for  the new wide columns
+  pivot_wider(names_from = timepoint, 
+               # prefix to be  added to the new wide columns
+                names_prefix = "brain_volume_", 
+              # values of the new wide columns
+              values_from = c(brain_volume))
+
+mri_wide
+```
