@@ -1,0 +1,83 @@
+---
+title: "Analyzing data: plotting challenge"
+date: "Sept, 2020"
+output:
+  html_document:
+    number_sections: no
+    df_print: kable
+    code_folding: show
+    toc: yes
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
+---
+
+# 0. load packages 
+
+```{r, warning = F, message = F}
+# load packages 
+library(readxl)
+library(tidyverse)
+```
+
+
+# 1. load data 
+
+load the cleaned cortisol data with demographic data added: cort_clean_demo_long.csv
+```{r}
+
+```
+
+# 2. Make a bar graph with mean cortisol values, by time of day 
+
+First, make the summary table called 'cort_table'
+```{r}
+cort_table <- 
+```
+
+Next, fill in the code below to plot the bar graph with error bars. 
+
+Fill the bars (colors) based on time of day, and add your own custom colors.
+
+Change y and x axis labels and add a title for your plot
+```{r}
+CortBar <- ggplot(data = cort_table, aes(    )) +
+   geom_bar(aes(      ),      ) + 
+   geom_errorbar(aes(        ),      ) + 
+   scale_fill_manual(values = c("    ", "     ")) + 
+   theme_bw() + 
+   labs(     )
+
+CortBar
+
+```
+
+Add raw data points using geom_jitter() 
+
+Hint:  make sure to add the raw data as the first argument!
+
+```{r}
+CortBarJitter <- CortBar + geom_jitter(data =       , aes(       ),       )
+
+CortBarJitter
+```
+
+
+## 3. Facet the time-of-day plot by Intervention group.
+
+First, make  a new summary table, where we group by time of day and intervention.
+```{r}
+cort_table <- 
+```
+
+Next, make the same bar plot, but this time add an extra line with facet_wrap()
+
+```{r}
+
+CortBarFacet <- 
+
+  
+
+CortBarFacet
+
+```

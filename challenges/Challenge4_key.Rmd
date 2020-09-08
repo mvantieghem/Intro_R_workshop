@@ -1,0 +1,110 @@
+---
+title: "Analyzing data: plotting challenge"
+date: "Sept, 2020"
+output:
+  html_document:
+    number_sections: no
+    df_print: kable
+    code_folding: show
+    toc: yes
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
+---
+## key concepts:
+- recode variables with  `recode()`
+- Basic ggplot syntax 
+- Example plot types
+- Plot Formatting
+- Saving plots
+
+
+# 0. load packages 
+
+```{r, warning = F, message = F}
+# load packages 
+library(readxl)
+library(tidyverse)
+```
+
+
+# 1. load data 
+
+load the cleaned cortisol data with demographic data added: cort_clean_demo_long.csv
+```{r}
+
+cort_df <- read_csv("../clean_data/cort_clean_demo_long.csv")
+head(cort_df)
+```
+
+# 2. Make a bar graph with mean cortisol values, by time of day 
+
+First, make the summary table
+```{r}
+cort_table <- cort_df %>%
+  group_by(time_of_day) %>%
+  summarize(mean_cort = mean(log_cort), 
+            sd_cort = sd(log_cort), 
+            upper = mean_cort + sd_cort, 
+            lower = mean_cort - sd_cort)
+
+cort_table
+```
+
+Next, plot the bar graph with error bars. 
+
+Fill the bars (colors) based on time of day.
+
+Change y and x axis labels and add a title for your plot
+```{r}
+CortBar <- ggplot(data = cort_table, aes(x =  time_of_day, y = mean_cort)) +
+   geom_bar(aes(fill = time_of_day), stat = "identity",alpha = 0.5) + 
+   geom_errorbar(aes(ymin = lower, ymax = upper), width = 0.5) + 
+   scale_fill_manual(values = c("dark red", "dark blue")) + 
+  theme_bw() + 
+  labs(x = "", y = "Log Cort (mean)", title = "Time of Day effect on Cortisol")
+
+CortBar
+
+```
+
+Add raw data points using geom_jitter() 
+
+Hint:  make sure to add the raw data as the first argument!
+
+```{r}
+CortBarJitter <- CortBar + geom_jitter(data = cort_df, aes(x = time_of_day, y = log_cort, fill = time_of_day), 
+                      width = 0.1, height = 0, alpha = 0.5)
+
+CortBarJitter
+```
+
+
+## 3. Facet the time-of-day plot by Intervention group.
+
+First, make  a new summary table, where we also group by intervention.
+```{r}
+cort_table <- cort_df %>%
+  group_by(time_of_day, intervention) %>%
+  summarize(mean_cort = mean(log_cort), 
+            sd_cort = sd(log_cort), 
+            upper = mean_cort + sd_cort, 
+            lower = mean_cort - sd_cort)
+cort_table
+```
+
+Next, make the same bar plot, but this time add an extra line with facet_wrap()
+
+```{r}
+
+CortBar <- ggplot(data = cort_table, aes(x =  time_of_day, y = mean_cort)) +
+   geom_bar(aes(fill = time_of_day), stat = "identity",alpha = 0.5) + 
+   geom_errorbar(aes(ymin = lower, ymax = upper), width = 0.5) + 
+   scale_fill_manual(values = c("dark red", "dark blue")) + 
+  theme_bw() +
+  labs(x = "", y = "Log Cort (mean)", title = "Cortisol by Time of Day and Intervention Group") +
+   facet_wrap(~intervention) 
+
+CortBar
+
+```
