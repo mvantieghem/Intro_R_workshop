@@ -1,0 +1,291 @@
+---
+title: "Analyzing data"
+subtitle: "Lesson 7: Modeling data"
+date: "September 2020"
+output: 
+  html_document:
+    theme: flatly
+    highlight: haddock 
+    df_print: kable
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+    keep_md: true
+---
+
+## Goals of this lesson: 
+
+1. Learn about functions and syntax for models in R 
+2. Practice examples of different model types 
+3. Understand how to obtain model results in R  
+4. Learn how to visualize the results of the models
+
+## References
+This lesson was adapted from the Columbia University Psychology Scientific Computing [Introductory R Tutorial](https://cu-psych-computing.github.io/cu-psych-comp-tutorial/tutorials/r-core/). 
+
+
+## 0. Load packages 
+
+We will install a few new packages:
+- `effects` for obtaining the fitted effects of model results easily.
+- `car` for more useful statistics functions, like Anova()
+- `broom` for getting model output into tidy tables.
+
+```{r, message = F}
+#install.packages("effects")
+# install.packages("car)
+# install.packages("broom")
+
+library(tidyverse)
+library(effects)
+library(car)
+library(broom)
+
+```
+
+
+## 1. Load Data
+
+Load your cleaned data with cortisol and demographics.
+```{r, message = F}
+# this is the cort in long format, with demo added. 
+demo_df <- read_csv("../data/demo_data.csv")
+mri_df <- read_csv("../data/mri_data.csv")
+```
+
+
+Merge these datasets by participant_id, and convert intervention to a factor 
+
+```{r}
+
+merge_df <- mri_df %>%
+   left_join(., demo_df, by = "Participant_id") %>%
+   mutate(intervention = as.factor(intervention))
+
+glimpse(merge_df)
+```
+
+## 2. Basics of Modeling in R 
+
+### Basic models
+
+For each model type, there is a different function. Many of these are available in base R.
+
+T-TEST: `t.test()`
+CORRELATION: `cor.test()`
+LINEAR REGRESSION: `lm()`
+
+Each function has their own set of arguments, based on the options available. 
+
+The first argument is always the model formula, which follows a standard syntax.
+
+### Basic model formula
+
+For any type of model with an IV and DV, there is a common syntax. The "~" delineates the direction of the model, where the DV is always on the left of the ~ and the predictors are always on the right.
+
+`Y ~ X`
+
+Example of *t*-test: Does brain volume1 differ by intervention group?
+
+```{r}
+t.test(brain_volume1 ~ intervention, data = merge_df)
+```
+
+Example of linear regression: Does age predict brain_volumes1?
+
+side note: this output isn't that useful, more on that below.
+```{r}
+lm(brain_volume1 ~ age, data = merge_df)
+
+```
+
+
+### To add multiple variables
+(in ANOVA or linear regression), simply add  a "+" for each variable on the right of the formula:
+
+`Y ~ X1 + X2 + X3`
+
+Example of linear model example with 2 predictors (continuous and categorical): Does intervention group predict brain_volume1, controlling for age?
+
+```{r}
+lm(brain_volume1 ~ age + intervention, data = merge_df)
+
+```
+
+### Interactions
+
+When you want to test the interaction between two variables, add a ":". 
+The colon will automatically create an interaction regressor between X1 and X2.
+You still need to add each variable alone to calculate their main effects. 
+
+`Y ~ X1 + X2 + X1:X2`
+
+Alternatively, a shortcut is to use an asterisk "*" that provides a shortcut. It will automatically create an interaction regressor AND the main effects for each variable.
+
+`Y ~ X1*X2` is identical to `Y ~ X1 + X2 + X1:X2`
+
+Example of an interaction between 2 continous variables in linear regression: Does age interact with intervention group to predict brain_volume1?
+
+Side note: we need to make age-mean-centered variable first
+```{r}
+merge_df <- merge_df %>%
+   mutate(age.c = age - mean(age, na.rm = T))
+
+lm(brain_volume1 ~ age.c*intervention, data = merge_df)
+```
+
+In the case where there is no IV/DV (i.e. correlation between 2 continuous variables), there is no "~".
+
+Instead there is a ","" to delineate 2 different variables.
+
+Example of correlation: Does brain volume1 correlate with brain volume 2? 
+
+```{r}
+cor.test(merge_df$brain_volume1, merge_df$brain_volume2)
+```
+
+## 4.  Output of models 
+
+The output of your code will depend on the model type. Linear models have much more information to output relative to t-tests, so they require an additional "summary()" call on the model to see the full results. 
+
+### Linear models
+
+The output includes the following:
+
+a) the formula of your model 
+b) residuals
+c) coefficients of the model (estimate, st. error, t-value, p-value)
+d) overall model results (RSE, R-squared, F-statistics, p-value)
+
+```{r}
+# first, we will save our model object and call it lm1
+lm1 <-lm(brain_volume1 ~ age + intervention, data = merge_df)
+
+# then we will ask for the summary of the model results
+summary(lm1)
+
+# save the model 
+save (lm1, file = "my_model.Rda")
+```
+
+We can index specific components of the output. What if I want to save the coefficients to a table?
+
+```{r}
+summary(lm1)$coefficients
+
+#or, even better: automatically get a tidy table from the broom package
+tidy(lm1)
+
+# save the table for later
+my_table <- tidy(lm1)
+
+save(my_table, file = "my_table.Rda")
+```
+
+
+## 5. Visualizing models 
+
+There are many ways (and packages) to plot the output of your models. 
+
+We will start with a handy package, [`effects`](https://cran.r-project.org/web/packages/effects/effects.pdf){target="_blank"},  that extracts the 'effects' for you from linear models.
+
+### Visualizing effects of categorical variables from lm
+
+We'll get the effect of intervention  on brain_volume1 from our linear model. This represents the effect of intervention group, controlling for age.
+
+```{r}
+# This function requires the X variable in quotes, and the saved model object
+intervention_effect <- data.frame(effect("intervention", lm1))
+
+# returns a dataframe with 2 rows, with the fitted effects for each group in the intervention variable.
+# also includes standard error, and 95% Confidence Intervals
+intervention_effect
+```
+
+Let's make plot the effect of intervention group on brain_volume1, with bar graph and error bars. 
+
+```{r}
+interventionPlot <- ggplot(data = intervention_effect, aes(x = intervention,  y = fit)) + 
+   geom_bar(stat = "identity", aes(fill = intervention)) + 
+   geom_errorbar(aes(ymin = lower, ymax = upper), width = 0.1) + 
+   labs (y = "Brain Volume 1", x = "Intervention") +  
+   theme_bw()
+
+interventionPlot
+```
+
+Add raw data points. There aren't that many points, so we'll use `geom_point()`  instead of `geom_jitter()`.
+
+We also don't need the legend, so we'll remove it.
+```{r}
+
+interventionPlot + geom_point(data = merge_df, aes(x = intervention, y = brain_volume1), alpha = 0.3) +
+   theme(legend.position = "none") 
+```
+
+### Visualizing effects of continuous variables  from lm 
+
+We'll get the effect of age on brain_volume1 from our linear model. This represents the effect of age, controlling for intervention group. 
+
+```{r}
+# This function requires the X variable in quotes, and the saved model object
+age_effect <- data.frame(effect("age", lm1))
+
+# returns a dataframe with age at 5 levels (min, -1SD, mean, +1SD, max) 
+# with fitted "brain_volume1", standard error, and 95% Confidence Intervals
+age_effect
+```
+
+Let's make plot the linear effect of age on brain_volume1
+
+`geom_ribbon` is just like `geom_errorbar`, but for linear effects instead of bars.
+
+It allows us to add a shaded region with the 95% CI, indicated by upper & lower bounds.
+
+```{r}
+ageplot <- ggplot(data = age_effect, aes(x = age,  y = fit)) + 
+   geom_line(size = 1, color = "blue") + 
+   geom_ribbon(aes(ymin = lower, ymax = upper), fill = "blue", alpha = 0.2) + 
+   labs (y = "Brain Volume 1", x = "Age (years)", title = "Effect of age on brain volume 1") +  
+   theme_bw()
+
+ageplot
+```
+
+Let's add the raw data. We see how the y axis automatically re-scales to accomodate the data points.
+```{r}
+ageplot + geom_point(data = merge_df, aes(x = age, y = brain_volume1), alpha = 0.5)
+
+```
+
+## Side notes:
+
+### T-test in R
+Default of t-test in R is to perform a Welch's t-test that assumes variances are *not* equal between groups.
+
+To change the assumptions to match SPSS defaults, add the arugment `var.equal = TRUE`
+```{r}
+t.test(brain_volume1 ~ intervention, data = merge_df, var.equal = TRUE)
+
+```
+
+### Anova in R
+There are many packages to do anova in R, too many, all with different assumptions, and difficult to keep straight.
+
+To simplify your life, consider your anova in terms of a linear model. 
+
+Remmeber our linear model with 1 categorical and 1 linear predictor? 
+```{r}
+summary(lm1)
+```
+
+This could be considered an ANCOVA, or an ANOVA with a continuous covariate.
+
+With the `car` package in R, we can actually just take our linear model results and get your results in an ANOVA framework.
+
+type = "III" refers to using type 3 sums of squares, which is generally the default in SPSS. 
+
+*make sure to use `car::Anova()` and not other anova functions.
+```{r}
+car::Anova(lm1, type =  "III")
+```
