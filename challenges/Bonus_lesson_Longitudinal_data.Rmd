@@ -1,0 +1,116 @@
+---
+title: "Analyzing data: modeling"
+subtitle: "Bonus lesson: mixed effects models with longitudinal data"
+date: "Sept, 2020"
+output:
+  html_document:
+    number_sections: no
+    df_print: kable
+    code_folding: show
+    toc: yes
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
+---
+
+## 0. Load packages 
+
+```{r, message = F}
+# install.packages("lme4")
+# install.packages("lmerTest")
+
+library(tidyverse)
+library(lme4)
+library(lmerTest)
+```
+
+
+## 1. Load Data
+
+load the cort_clean_demo_long.csv data
+```{r}
+
+cort_long <- read_csv("../clean_Data/cort_clean_demo_long.csv")
+```
+
+prep data: before modeling, it's a good idea to change your character variables into "factors" so that R knows they are categorical / factor variables.
+```{r}
+cort_long <- cort_long %>%
+  mutate(intervention = as.factor(intervention), 
+         time_of_day = as.factor(time_of_day), 
+         sex = as.factor(sex))
+
+head(cort_long)
+
+```
+
+## 2. visualize the data
+
+we actually have within-subject observations in this dataset: time of day (waking, evening) and day (1,2).
+
+Let's plot the cortisol slope across the day, and facet by day of cort collection.
+
+`geom_line()` allows us to add a "grouping" variable, so we can connect the lines by Participant_id.
+
+We can still color by intervention.
+```{r}
+
+ggplot(data = cort_long, aes(x =time_of_day, y = log_cort)) + 
+  geom_point(aes(color = intervention)) + geom_smooth(method = "lm") +
+  facet_grid(~day) + theme_bw() +
+  geom_line(aes(group = Participant_id, color = intervention)) + 
+  labs(x = "", y = "Cortisol Value (log)")
+
+```
+
+side note: ggplot automatically orders factors alphabetically (bedtime, waking).
+
+Let's swap the order of the time_of_day factor using `relevel()` so that waking appears first.
+
+```{r}
+cort_long <- cort_long %>%
+  # the relevel function changes the "reference" level of the factor
+  mutate(time_of_day = relevel(time_of_day, "waking"))
+
+ggplot(data = cort_long, aes(x =time_of_day, y = log_cort)) + 
+  geom_point(aes(color = intervention)) + geom_smooth(method = "lm") +
+  facet_grid(~day) + theme_bw() +
+  geom_line(aes(group = Participant_id, color = intervention)) + 
+  labs(x = "", y = "Cortisol Value (log)")
+
+
+```
+
+
+## 3.  Model the longitudinal data 
+
+Let's create a model of this data, where we can look at how cortisol slopes vary by intervention group.
+
+Let's use **mixed effects modeling**  with random effects to account for within-subject variance, using the `lme4` and `lmerTest` packages.
+
+We will have two random effects: within-subject slopes (time of day) and per-subject intercepts (waking level)
+
+```{r}
+
+lmer_mod1 <- lmer(log_cort ~ intervention +  time_of_day + # variables of interest
+                    day +age + sex + # covariates 
+       (1 + time_of_day | Participant_id),  # random effects
+       data = cort_long) # data
+
+summary(lmer_mod1)
+```
+
+
+That output is a bit much, so let's pull out just the coefficients of the fixed effects. 
+```{r}
+fixed_effects <- summary(lmer_mod1)$coefficients
+fixed_effects
+```
+
+
+We can also get the individual intercepts and slopes from each subject (random effects)
+```{r} 
+random_effects <- ranef(lmer_mod1)
+head(random_effects)
+```
+

@@ -60,7 +60,9 @@ Merge these datasets by participant_id, and convert intervention to a factor
 
 merge_df <- mri_df %>%
    left_join(., demo_df, by = "Participant_id") %>%
-   mutate(intervention = as.factor(intervention))
+   mutate(intervention = as.factor(intervention),
+          age.c = age - mean(age, na.rm = T))
+
 
 glimpse(merge_df)
 ```
@@ -126,11 +128,8 @@ Alternatively, a shortcut is to use an asterisk "*" that provides a shortcut. It
 
 Example of an interaction between 2 continous variables in linear regression: Does age interact with intervention group to predict brain_volume1?
 
-Side note: we need to make age-mean-centered variable first
+Side note: recommend using mean-centered variables for interactions! 
 ```{r}
-merge_df <- merge_df %>%
-   mutate(age.c = age - mean(age, na.rm = T))
-
 lm(brain_volume1 ~ age.c*intervention, data = merge_df)
 ```
 
@@ -270,11 +269,11 @@ t.test(brain_volume1 ~ intervention, data = merge_df, var.equal = TRUE)
 ```
 
 ### Anova in R
-There are many packages to do anova in R, too many, all with different assumptions, and difficult to keep straight.
+There are many packages to do anova in R (too many) all with different assumptions, and they are difficult to keep straight. 
 
-To simplify your life, consider your anova in terms of a linear model. 
+To simplify your life using R, consider your anova in terms of a linear model. 
 
-Remmeber our linear model with 1 categorical and 1 linear predictor? 
+Remember our linear model with 1 categorical and 1 linear predictor? 
 ```{r}
 summary(lm1)
 ```

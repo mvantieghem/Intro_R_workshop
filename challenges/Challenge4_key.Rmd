@@ -11,12 +11,6 @@ output:
       collapsed: no
       smooth_scroll: yes
 ---
-## key concepts:
-- recode variables with  `recode()`
-- Basic ggplot syntax 
-- Example plot types
-- Plot Formatting
-- Saving plots
 
 
 # 0. load packages 
